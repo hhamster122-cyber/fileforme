@@ -195,8 +195,9 @@
   <section class="card">
     <h2 id="upload-title">Загрузка файлов</h2>
     <div class="field-row">
-      <input type="file" id="file-input" multiple />
-      <button class="primary" id="btn-upload">Загрузить</button>
+      <input type="file" id="file-input" multiple style="display:none;" />
+      <button class="primary" id="btn-choose"></button>
+      <button class="primary" id="btn-upload"></button>
       <button class="primary" id="btn-retry" style="display:none;"></button>
     </div>
     <div class="chip" id="file-count-chip" style="display:none;">
@@ -246,7 +247,7 @@
       headerTitle: "Загрузка файлов для Александры",
       langLabel: "Язык:",
       uploadTitle: "Загрузка файлов",
-      chooseFiles: "Выберите файлы",
+      chooseFiles: "Выбрать файлы",
       uploadBtn: "Загрузить",
       retryBtn: "Повторить только проблемные",
       statusIdle: "Файлы не выбраны.",
@@ -263,6 +264,7 @@
       dontClose: "Пожалуйста, не закрывайте вкладку, пока загрузка не завершится.",
       errorsTitle: (n) =>
         n === 1 ? "Не удалось загрузить 1 файл:" : `Не удалось загрузить ${n} файлов:`,
+      statusError: "Ошибка загрузки",
       gamesTitle: "Мини-игры, чтобы скоротать ожидание",
       gamesDesc: "Файлы загружаются в фоне. Можете спокойно поиграть, пока ждёте.",
       gamePuzzle: "🧩 Пазл",
@@ -312,6 +314,7 @@
       dontClose: "Please do not close this tab until the upload is finished.",
       errorsTitle: (n) =>
         n === 1 ? "Failed to upload 1 file:" : `Failed to upload ${n} files:`,
+      statusError: "Upload error",
       gamesTitle: "Mini games to pass the time",
       gamesDesc: "Files are uploading in the background. Feel free to play while you wait.",
       gamePuzzle: "🧩 Puzzle",
@@ -351,6 +354,7 @@
   const btnEn = document.getElementById("btn-en");
 
   const uploadTitleEl = document.getElementById("upload-title");
+  const btnChoose = document.getElementById("btn-choose");
   const btnUpload = document.getElementById("btn-upload");
   const btnRetry = document.getElementById("btn-retry");
   const statusTextEl = document.getElementById("status-text");
@@ -397,6 +401,7 @@
     headerTitleEl.textContent = t.headerTitle;
     langLabelEl.textContent = t.langLabel;
     uploadTitleEl.textContent = t.uploadTitle;
+    btnChoose.textContent = t.chooseFiles;
     btnUpload.textContent = t.uploadBtn;
     btnRetry.textContent = t.retryBtn;
     hintTextEl.textContent = t.dontClose + " " + t.sizeHint;
@@ -429,12 +434,12 @@
     btnRu.classList.toggle("active", lang === "ru");
     btnEn.classList.toggle("active", lang === "en");
 
-    // без optional chaining, чтобы точно не упасть
     const activeBtn = document.querySelector(".game-tabs button.active");
     const activeGame = activeBtn ? activeBtn.getAttribute("data-game") : "puzzle";
     safeLoadGame(activeGame);
   }
 
+  // Инициализация языка
   (function initLang() {
     const saved = localStorage.getItem("upload_lang");
     if (saved === "ru" || saved === "en") {
@@ -454,6 +459,9 @@
     localStorage.setItem("upload_lang", "en");
     updateLanguage("en");
   });
+
+  // Кастомная кнопка выбора файлов
+  btnChoose.addEventListener("click", () => fileInput.click());
 
   fileInput.addEventListener("change", () => {
     allFiles = Array.from(fileInput.files || []);
@@ -575,8 +583,11 @@
       }
     } catch (err) {
       console.error("Global upload error", err);
+      const t = translations[currentLang];
       statusTextEl.textContent =
-        (t && (t.statusError || "Ошибка загрузки")) + ": " + (err.message || err);
+        (t && t.statusError ? t.statusError : "Ошибка загрузки") +
+        ": " +
+        (err.message || err);
     } finally {
       btnUpload.disabled = false;
       isUploading = false;
@@ -585,7 +596,6 @@
 
   btnUpload.addEventListener("click", () => {
     const t = translations[currentLang];
-    console.log("Upload button clicked, files:", allFiles.length);
     if (!allFiles.length) {
       statusTextEl.textContent = t.statusIdle;
       return;
@@ -762,7 +772,7 @@
         for (let r = 0; r < shape.length; r++) {
           for (let c = 0; c < shape[r].length; c++) {
             if (shape[r][c]) {
-              const nr = row + р;
+              const nr = row + r;
               const nc = col + c;
               if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
                 board[nr][nc] = 1;
