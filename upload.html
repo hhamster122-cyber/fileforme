@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Загрузка файлов для Александры</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f8;
+      color: #222;
+    }
+    header {
+      padding: 12px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .lang-switch button {
+      margin-left: 6px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .lang-switch button.active {
+      background: #222;
+      color: #fff;
+      border-color: #222;
+    }
+    main {
+      max-width: 1100px;
+      margin: 20px auto;
+      padding: 0 16px 30px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 20px;
+    }
+    @media (max-width: 800px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 18px 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+    .field-row {
+      margin: 10px 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    input[type="file"] {
+      max-width: 100%;
+    }
+    button.primary {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button.primary:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 14px;
+      min-height: 18px;
+    }
+    .progress-bar {
+      margin-top: 10px;
+      width: 100%;
+      height: 14px;
+      background: #eee;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #22c55e);
+      transition: width 0.1s linear;
+    }
+    .small-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .errors {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #b91c1c;
+      max-height: 150px;
+      overflow-y: auto;
+      border-top: 1px dashed #fbbf24;
+      padding-top: 6px;
+    }
+    .errors ul {
+      padding-left: 18px;
+      margin: 4px 0;
+    }
+    .errors li {
+      margin: 2px 0;
+      word-break: break-all;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+    .chip span {
+      margin-left: 4px;
+      font-weight: 600;
+    }
+    .game-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .game-tabs button {
+      flex: 1 1 45%;
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 13px;
+      background: #f9fafb;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .game-tabs button.active {
+      background: #22c55e;
+      border-color: #16a34a;
+      color: #fff;
+    }
+    #game-container {
+      border-radius: 10px;
+      background: #f9fafb;
+      min-height: 220px;
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .game-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .cat-area {
+      text-align: center;
+      padding-top: 10px;
+    }
+    .cat-emoji {
+      font-size: 56px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+    .cat-emoji:active {
+      transform: scale(0.9);
+    }
+    .game-info {
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    canvas {
+      background: #0f172a;
+      border-radius: 8px;
+      display: block;
+      margin: 6px auto 0;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div id="header-title">Загрузка файлов для Александры</div>
+  <div class="lang-switch">
+    <span id="lang-label">Язык:</span>
+    <button id="btn-ru" class="active">Русский</button>
+    <button id="btn-en">English</button>
+  </div>
+</header>
+
+<main>
+  <!-- ЗАГРУЗКА ФАЙЛОВ -->
+  <section class="card">
+    <h2 id="upload-title">Загрузка файлов</h2>
+    <div class="field-row">
+      <input type="file" id="file-input" multiple />
+      <button class="primary" id="btn-upload">Загрузить</button>
+      <button class="primary" id="btn-retry" style="display:none;"></button>
+    </div>
+    <div class="chip" id="file-count-chip" style="display:none;">
+      <span id="file-count-text"></span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-bar-inner" id="progress-inner"></div>
+    </div>
+    <div class="status" id="status-text"></div>
+    <div class="small-text" id="hint-text">
+      Пожалуйста, не закрывайте вкладку, пока загрузка не завершится.
+    </div>
+    <div class="errors" id="errors-block" style="display:none;">
+      <div id="errors-title"></div>
+      <ul id="errors-list"></ul>
+    </div>
+  </section>
+
+  <!-- ИГРЫ -->
+  <section class="card">
+    <h2 id="games-title">Мини-игры, чтобы скоротать ожидание</h2>
+    <div class="small-text" id="games-desc">
+      Файлы загружаются в фоне. Можете спокойно поиграть, пока ждёте.
+    </div>
+    <div class="game-tabs">
+      <button data-game="cat" class="active" id="tab-cat">🐾 Кот-кликер</button>
+      <button data-game="puzzle" id="tab-puzzle">🧩 Пазл</button>
+      <button data-game="tetris" id="tab-tetris">🟦 Тетрис</button>
+      <button data-game="tree" id="tab-tree">🌱 Дерево</button>
+    </div>
+    <div id="game-container"></div>
+  </section>
+</main>
+
+<script>
+  // ========= НАСТРОЙКИ =========
+  const FUNCTION_URL = "https://functions.yandexcloud.net/d4eafltkn2hkceg16of4"; // URL HTTP-триггера
+  const SECRET = "f7bzlvqi";      // тот же, что UPLOAD_SECRET
+
+  // ========= ПЕРЕВОДЫ =========
+  const translations = {
+    ru: {
+      headerTitle: "Загрузка файлов для Александры",
+      langLabel: "Язык:",
+      uploadTitle: "Загрузка файлов",
+      chooseFiles: "Выберите файлы",
+      uploadBtn: "Загрузить",
+      retryBtn: "Повторить только проблемные",
+      statusIdle: "Файлы не выбраны.",
+      statusReady: (n) => `Файлов для загрузки: ${n}.`,
+      statusStarting: "Начинаю загрузку…",
+      statusFile: (cur, total, name) =>
+        `Сейчас загружается: ${cur}/${total} — ${name}`,
+      statusDoneAll: (ok, total, sizeText) =>
+        `Готово! Загружено ${ok} из ${total} файлов (${sizeText}).`,
+      statusDonePartial: (ok, total, sizeText, failed) =>
+        `Загружено успешно: ${ok} из ${total} файлов (${sizeText}). Не удалось: ${failed}.`,
+      statusRetry: (count) => `Повторная загрузка ${count} проблемных файлов…`,
+      sizeHint: "Рекомендуемый максимальный суммарный размер — до 35–40 ГБ.",
+      dontClose: "Пожалуйста, не закрывайте вкладку, пока загрузка не завершится.",
+      errorsTitle: (n) =>
+        n === 1 ? "Не удалось загрузить 1 файл:" : `Не удалось загрузить ${n} файлов:`,
+      gamesTitle: "Мини-игры, чтобы скоротать ожидание",
+      gamesDesc: "Файлы загружаются в фоне. Можете спокойно поиграть, пока ждёте.",
+      gameCat: "🐾 Кот-кликер",
+      gamePuzzle: "🧩 Пазл",
+      gameTetris: "🟦 Тетрис",
+      gameTree: "🌱 Дерево",
+      catTitle: "Кот-кликер",
+      catClickMe: "Кликни по котику!",
+      catScore: (s) => `Очки: ${s}`,
+      catHint: "Каждый клик — это +1 очко. Попробуйте набрать 100 и больше!",
+      puzzleTitle: "Пятнашки 4×4",
+      puzzleHint: "Кликайте по плиткам рядом с пустой, чтобы собрать числа по порядку.",
+      tetrisTitle: "Мини-тетрис",
+      tetrisHint: "Управление: ← → ↓, пробел — повернуть фигуру.",
+      treeTitle: "Растущее дерево",
+      treeHint: "Кликайте по ростку, чтобы оно росло. Чем больше кликов, тем выше дерево.",
+      filesChip: (n) => `Выбрано файлов: ${n}`
+    },
+    en: {
+      headerTitle: "File upload for Alexandra",
+      langLabel: "Language:",
+      uploadTitle: "File upload",
+      chooseFiles: "Choose files",
+      uploadBtn: "Upload",
+      retryBtn: "Retry failed only",
+      statusIdle: "No files selected.",
+      statusReady: (n) => `Files to upload: ${n}.`,
+      statusStarting: "Starting upload…",
+      statusFile: (cur, total, name) =>
+        `Uploading: ${cur}/${total} — ${name}`,
+      statusDoneAll: (ok, total, sizeText) =>
+        `Done! Uploaded ${ok} of ${total} files (${sizeText}).`,
+      statusDonePartial: (ok, total, sizeText, failed) =>
+        `Uploaded successfully: ${ok} of ${total} files (${sizeText}). Failed: ${failed}.`,
+      statusRetry: (count) => `Retrying upload of ${count} failed files…`,
+      sizeHint: "Recommended total size: up to about 35–40 GB.",
+      dontClose: "Please do not close this tab until the upload is finished.",
+      errorsTitle: (n) =>
+        n === 1 ? "Failed to upload 1 file:" : `Failed to upload ${n} files:`,
+      gamesTitle: "Mini games to pass the time",
+      gamesDesc: "Files are uploading in the background. Feel free to play while you wait.",
+      gameCat: "🐾 Cat Clicker",
+      gamePuzzle: "🧩 Puzzle",
+      gameTetris: "🟦 Tetris",
+      gameTree: "🌱 Tree",
+      catTitle: "Cat Clicker",
+      catClickMe: "Click the cat!",
+      catScore: (s) => `Score: ${s}`,
+      catHint: "Each click gives +1 point. Try to reach 100 and more!",
+      puzzleTitle: "15 Puzzle 4×4",
+      puzzleHint: "Click tiles near the empty space to arrange numbers in order.",
+      tetrisTitle: "Mini Tetris",
+      tetrisHint: "Controls: ← → ↓, space — rotate.",
+      treeTitle: "Growing tree",
+      treeHint: "Click the sprout to make it grow. The more clicks, the higher the tree.",
+      filesChip: (n) => `Files selected: ${n}`
+    }
+  };
+
+  let currentLang = "ru";
+
+  // Элементы
+  const headerTitleEl = document.getElementById("header-title");
+  const langLabelEl = document.getElementById("lang-label");
+  const btnRu = document.getElementById("btn-ru");
+  const btnEn = document.getElementById("btn-en");
+
+  const uploadTitleEl = document.getElementById("upload-title");
+  const btnUpload = document.getElementById("btn-upload");
+  const btnRetry = document.getElementById("btn-retry");
+  const statusTextEl = document.getElementById("status-text");
+  const hintTextEl = document.getElementById("hint-text");
+  const progressInner = document.getElementById("progress-inner");
+  const fileInput = document.getElementById("file-input");
+  const errorsBlock = document.getElementById("errors-block");
+  const errorsTitleEl = document.getElementById("errors-title");
+  const errorsListEl = document.getElementById("errors-list");
+  const fileCountChip = document.getElementById("file-count-chip");
+  const fileCountText = document.getElementById("file-count-text");
+
+  const gamesTitleEl = document.getElementById("games-title");
+  const gamesDescEl = document.getElementById("games-desc");
+  const tabCat = document.getElementById("tab-cat");
+  const tabPuzzle = document.getElementById("tab-puzzle");
+  const tabTetris = document.getElementById("tab-tetris");
+  const tabTree = document.getElementById("tab-tree");
+  const gameContainer = document.getElementById("game-container");
+
+  // Состояние загрузки
+  let allFiles = [];
+  let failedFiles = [];
+  let isUploading = false;
+
+  function formatSize(bytes) {
+    const units = ["Б", "КБ", "МБ", "ГБ", "ТБ"];
+    const unitsEn = ["B", "KB", "MB", "GB", "TB"];
+    const u = currentLang === "ru" ? units : unitsEn;
+    if (bytes === 0) return "0 " + u[0];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    const value = (bytes / Math.pow(1024, i)).toFixed(1);
+    return `${value} ${u[i]}`;
+  }
+
+  function updateLanguage(lang) {
+    currentLang = lang;
+    const t = translations[lang];
+
+    headerTitleEl.textContent = t.headerTitle;
+    langLabelEl.textContent = t.langLabel;
+    uploadTitleEl.textContent = t.uploadTitle;
+    btnUpload.textContent = t.uploadBtn;
+    btnRetry.textContent = t.retryBtn;
+    hintTextEl.textContent = t.dontClose + " " + t.sizeHint;
+
+    gamesTitleEl.textContent = t.gamesTitle;
+    gamesDescEl.textContent = t.gamesDesc;
+
+    tabCat.textContent = t.gameCat;
+    tabPuzzle.textContent = t.gamePuzzle;
+    tabTetris.textContent = t.gameTetris;
+    tabTree.textContent = t.gameTree;
+
+    // Обновим текст статуса в зависимости от уже выбранных файлов
+    if (allFiles.length === 0) {
+      statusTextEl.textContent = t.statusIdle;
+      fileCountChip.style.display = "none";
+    } else {
+      statusTextEl.textContent = t.statusReady(allFiles.length);
+      fileCountChip.style.display = "inline-flex";
+      fileCountText.textContent = t.filesChip(allFiles.length);
+    }
+
+    // Обновим заголовок ошибок
+    if (failedFiles.length > 0) {
+      errorsTitleEl.textContent = t.errorsTitle(failedFiles.length);
+    }
+
+    // Переключатели языка
+    btnRu.classList.toggle("active", lang === "ru");
+    btnEn.classList.toggle("active", lang === "en");
+
+    // Обновим игру (например, кот-кликер, чтобы тексты были на нужном языке)
+    const activeGame = document.querySelector(".game-tabs button.active")?.dataset.game || "cat";
+    loadGame(activeGame);
+  }
+
+  // Определяем язык по браузеру
+  (function initLang() {
+    const saved = localStorage.getItem("upload_lang");
+    if (saved === "ru" || saved === "en") {
+      currentLang = saved;
+    } else {
+      const navLang = (navigator.language || "en").toLowerCase();
+      currentLang = navLang.startsWith("ru") ? "ru" : "en";
+    }
+    updateLanguage(currentLang);
+  })();
+
+  btnRu.addEventListener("click", () => {
+    localStorage.setItem("upload_lang", "ru");
+    updateLanguage("ru");
+  });
+  btnEn.addEventListener("click", () => {
+    localStorage.setItem("upload_lang", "en");
+    updateLanguage("en");
+  });
+
+  // Обработка выбора файлов
+  fileInput.addEventListener("change", () => {
+    allFiles = Array.from(fileInput.files || []);
+    const t = translations[currentLang];
+    if (allFiles.length === 0) {
+      statusTextEl.textContent = t.statusIdle;
+      fileCountChip.style.display = "none";
+    } else {
+      statusTextEl.textContent = t.statusReady(allFiles.length);
+      fileCountChip.style.display = "inline-flex";
+      fileCountText.textContent = t.filesChip(allFiles.length);
+    }
+    progressInner.style.width = "0%";
+    errorsBlock.style.display = "none";
+    errorsListEl.innerHTML = "";
+    failedFiles = [];
+  });
+
+  // Главная функция загрузки массива файлов
+  async function uploadFiles(filesToUpload, isRetry = false) {
+    if (!filesToUpload.length) return;
+    const t = translations[currentLang];
+
+    isUploading = true;
+    btnUpload.disabled = true;
+    btnRetry.style.display = "none";
+    errorsBlock.style.display = "none";
+    errorsListEl.innerHTML = "";
+    failedFiles = [];
+
+    const totalFiles = filesToUpload.length;
+    let uploadedCount = 0;
+    let uploadedBytes = 0;
+    const totalSize = filesToUpload.reduce((s, f) => s + f.size, 0);
+
+    statusTextEl.textContent = isRetry
+      ? t.statusRetry(totalFiles)
+      : t.statusStarting;
+    progressInner.style.width = "0%";
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      const currentIndex = i + 1;
+      statusTextEl.textContent = t.statusFile(currentIndex, totalFiles, file.name);
+
+      try {
+        // 1. Спрашиваем у функции upload_url
+        const metaResp = await fetch(FUNCTION_URL + "?key=" + encodeURIComponent(SECRET), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: file.name,
+            size: file.size,
+            contentType: file.type || "application/octet-stream",
+          }),
+        });
+        if (!metaResp.ok) {
+          throw new Error("Meta request failed: " + metaResp.status);
+        }
+        const metaData = await metaResp.json();
+        const uploadUrl = metaData.upload_url;
+        if (!uploadUrl) {
+          throw new Error("No upload_url");
+        }
+
+        // 2. Загрузка файла в Object Storage
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", uploadUrl, true);
+          xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable && totalSize > 0) {
+              const currentUploaded = uploadedBytes + e.loaded;
+              const percent = (currentUploaded / totalSize) * 100;
+              progressInner.style.width = Math.min(100, percent).toFixed(1) + "%";
+            }
+          };
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              uploadedBytes += file.size;
+              const percent = (uploadedBytes / totalSize) * 100;
+              progressInner.style.width = Math.min(100, percent).toFixed(1) + "%";
+              resolve();
+            } else {
+              reject(new Error("Upload failed: " + xhr.status));
+            }
+          };
+          xhr.onerror = () => reject(new Error("Network error"));
+          xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+          xhr.send(file);
+        });
+
+        uploadedCount += 1;
+      } catch (err) {
+        console.error("Error uploading file", file.name, err);
+        failedFiles.push({ file, reason: err.message || "Error" });
+      }
+    }
+
+    // Итог
+    const sizeText = formatSize(uploadedBytes);
+    if (failedFiles.length === 0) {
+      statusTextEl.textContent = t.statusDoneAll(uploadedCount, totalFiles, sizeText);
+    } else {
+      statusTextEl.textContent = t.statusDonePartial(
+        uploadedCount,
+        totalFiles,
+        sizeText,
+        failedFiles.length
+      );
+      errorsTitleEl.textContent = t.errorsTitle(failedFiles.length);
+      errorsListEl.innerHTML = "";
+      failedFiles.forEach((f) => {
+        const li = document.createElement("li");
+        li.textContent = `${f.file.name} — ${f.reason}`;
+        errorsListEl.appendChild(li);
+      });
+      errorsBlock.style.display = "block";
+      btnRetry.style.display = "inline-block";
+    }
+
+    btnUpload.disabled = false;
+    isUploading = false;
+  }
+
+  // Кнопка "Загрузить"
+  btnUpload.addEventListener("click", () => {
+    const t = translations[currentLang];
+    if (!allFiles.length) {
+      statusTextEl.textContent = t.statusIdle;
+      return;
+    }
+    // Лёгкая проверка суммарного размера
+    const totalSize = allFiles.reduce((s, f) => s + f.size, 0);
+    const maxRecommended = 40 * 1024 * 1024 * 1024; // 40 ГБ
+    if (totalSize > maxRecommended) {
+      alert(t.sizeHint + "\n" + "( " + formatSize(totalSize) + " )");
+    }
+    uploadFiles(allFiles, false);
+  });
+
+  // Кнопка "Повторить только проблемные"
+  btnRetry.addEventListener("click", () => {
+    if (!failedFiles.length) return;
+    const retryList = failedFiles.map((x) => x.file);
+    uploadFiles(retryList, true);
+  });
+
+  // ========= ИГРЫ =========
+
+  function clearGameContainer() {
+    gameContainer.innerHTML = "";
+  }
+
+  function setActiveTab(name) {
+    [tabCat, tabPuzzle, tabTetris, tabTree].forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.game === name);
+    });
+  }
+
+  function loadGame(name) {
+    clearGameContainer();
+    setActiveTab(name);
+    const t = translations[currentLang];
+
+    if (name === "cat") {
+      const wrapper = document.createElement("div");
+      wrapper.className = "cat-area";
+      const title = document.createElement("div");
+      title.className = "game-title";
+      title.textContent = t.catTitle;
+      const cat = document.createElement("div");
+      cat.className = "cat-emoji";
+      cat.textContent = "🐱";
+      const info = document.createElement("div");
+      info.className = "game-info";
+      let score = 0;
+      info.textContent = t.catScore(score) + " · " + t.catClickMe;
+      const hint = document.createElement("div");
+      hint.className = "small-text";
+      hint.textContent = t.catHint;
+      cat.addEventListener("click", () => {
+        score += 1;
+        info.textContent = t.catScore(score) + " · " + t.catClickMe;
+      });
+      wrapper.appendChild(title);
+      wrapper.appendChild(cat);
+      wrapper.appendChild(info);
+      wrapper.appendChild(hint);
+      gameContainer.appendChild(wrapper);
+      return;
+    }
+
+    if (name === "puzzle") {
+      const title = document.createElement("div");
+      title.className = "game-title";
+      title.textContent = t.puzzleTitle;
+      const hint = document.createElement("div");
+      hint.className = "small-text";
+      hint.textContent = t.puzzleHint;
+      const grid = document.createElement("div");
+      grid.style.display = "grid";
+      grid.style.gridTemplateColumns = "repeat(4, 1fr)";
+      grid.style.gap = "4px";
+      grid.style.marginTop = "8px";
+
+      const tiles = [];
+      for (let i = 1; i <= 15; i++) tiles.push(i);
+      tiles.push(null);
+
+      // перемешаем немного
+      for (let i = tiles.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+      }
+
+      function renderTiles() {
+        grid.innerHTML = "";
+        tiles.forEach((val, idx) => {
+          const cell = document.createElement("div");
+          cell.style.height = "40px";
+          cell.style.display = "flex";
+          cell.style.alignItems = "center";
+          cell.style.justifyContent = "center";
+          cell.style.borderRadius = "8px";
+          cell.style.cursor = "pointer";
+          cell.style.fontSize = "14px";
+
+          if (val === null) {
+            cell.style.background = "#e5e7eb";
+            cell.textContent = "";
+          } else {
+            cell.style.background = "#3b82f6";
+            cell.style.color = "#fff";
+            cell.textContent = val;
+          }
+
+          cell.addEventListener("click", () => {
+            if (val === null) return;
+            const emptyIndex = tiles.indexOf(null);
+            const row = Math.floor(idx / 4);
+            const col = idx % 4;
+            const er = Math.floor(emptyIndex / 4);
+            const ec = emptyIndex % 4;
+            const isNeighbour =
+              (row === er && Math.abs(col - ec) === 1) ||
+              (col === ec && Math.abs(row - er) === 1);
+            if (isNeighbour) {
+              [tiles[idx], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[idx]];
+              renderTiles();
+            }
+          });
+
+          grid.appendChild(cell);
+        });
+      }
+
+      renderTiles();
+      gameContainer.appendChild(title);
+      gameContainer.appendChild(hint);
+      gameContainer.appendChild(grid);
+      return;
+    }
+
+    if (name === "tetris") {
+      const title = document.createElement("div");
+      title.className = "game-title";
+      title.textContent = t.tetrisTitle;
+      const hint = document.createElement("div");
+      hint.className = "small-text";
+      hint.textContent = t.tetrisHint;
+      const canvas = document.createElement("canvas");
+      canvas.width = 200;
+      canvas.height = 380;
+      const ctx = canvas.getContext("2d");
+
+      const cols = 10;
+      const rows = 19;
+      const size = 20;
+      const board = Array.from({ length: rows }, () =>
+        Array(cols).fill(0)
+      );
+      const shapes = [
+        [[1, 1, 1, 1]],
+        [[1, 1], [1, 1]],
+        [[0, 1, 0], [1, 1, 1]],
+        [[1, 0, 0], [1, 1, 1]],
+        [[0, 0, 1], [1, 1, 1]],
+        [[1, 1, 0], [0, 1, 1]],
+        [[0, 1, 1], [1, 1, 0]],
+      ];
+
+      function randomShape() {
+        const shape = shapes[Math.floor(Math.random() * shapes.length)];
+        return shape.map((row) => [...row]);
+      }
+
+      let piece = {
+        shape: randomShape(),
+        row: 0,
+        col: 3,
+      };
+
+      function rotate(shape) {
+        const rows = shape.length;
+        const cols = shape[0].length;
+        const res = [];
+        for (let c = 0; c < cols; c++) {
+          const newRow = [];
+          for (let r = rows - 1; r >= 0; r--) {
+            newRow.push(shape[r][c]);
+          }
+          res.push(newRow);
+        }
+        return res;
+      }
+
+      function collides(p) {
+        const { shape, row, col } = p;
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[r].length; c++) {
+            if (!shape[r][c]) continue;
+            const nr = row + r;
+            const nc = col + c;
+            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) return true;
+            if (board[nr][nc]) return true;
+          }
+        }
+        return false;
+      }
+
+      function mergePiece() {
+        const { shape, row, col } = piece;
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[r].length; c++) {
+            if (shape[r][c]) {
+              const nr = row + r;
+              const nc = col + c;
+              if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                board[nr][nc] = 1;
+              }
+            }
+          }
+        }
+        // убираем заполненные линии
+        for (let r = rows - 1; r >= 0; r--) {
+          if (board[r].every((v) => v === 1)) {
+            board.splice(r, 1);
+            board.unshift(Array(cols).fill(0));
+            r++;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // фон
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // поле
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (board[r][c]) {
+              ctx.fillStyle = "#22c55e";
+              ctx.fillRect(c * size, r * size, size - 1, size - 1);
+            }
+          }
+        }
+        // фигура
+        ctx.fillStyle = "#3b82f6";
+        const { shape, row, col } = piece;
+        for (let r = 0; r < shape.length; r++) {
+          for (let c = 0; c < shape[r].length; c++) {
+            if (shape[r][c]) {
+              const nr = row + r;
+              const nc = col + c;
+              ctx.fillRect(nc * size, nr * size, size - 1, size - 1);
+            }
+          }
+        }
+      }
+
+      let gameOver = false;
+      function tick() {
+        if (gameOver) return;
+        const newPiece = {
+          shape: piece.shape,
+          row: piece.row + 1,
+          col: piece.col,
+        };
+        if (!collides(newPiece)) {
+          piece = newPiece;
+        } else {
+          mergePiece();
+          piece = {
+            shape: randomShape(),
+            row: 0,
+            col: 3,
+          };
+          if (collides(piece)) {
+            gameOver = true;
+          }
+        }
+        draw();
+      }
+      const interval = setInterval(tick, 500);
+
+      function handleKey(e) {
+        if (gameOver) return;
+        if (["ArrowLeft", "ArrowRight", "ArrowDown", " "].includes(e.key)) {
+          e.preventDefault();
+        }
+        if (e.key === "ArrowLeft") {
+          const p = { ...piece, col: piece.col - 1 };
+          if (!collides(p)) piece = p;
+        } else if (e.key === "ArrowRight") {
+          const p = { ...piece, col: piece.col + 1 };
+          if (!collides(p)) piece = p;
+        } else if (e.key === "ArrowDown") {
+          const p = { ...piece, row: piece.row + 1 };
+          if (!collides(p)) piece = p;
+        } else if (e.key === " ") {
+          const p = { ...piece, shape: rotate(piece.shape) };
+          if (!collides(p)) piece = p;
+        }
+        draw();
+      }
+
+      document.addEventListener("keydown", handleKey);
+
+      const cleanup = () => {
+        clearInterval(interval);
+        document.removeEventListener("keydown", handleKey);
+      };
+
+      // Чтобы при смене игры чистить
+      gameContainer._cleanup = cleanup;
+
+      gameContainer.appendChild(title);
+      gameContainer.appendChild(hint);
+      gameContainer.appendChild(canvas);
+      draw();
+      return;
+    }
+
+    if (name === "tree") {
+      const title = document.createElement("div");
+      title.className = "game-title";
+      title.textContent = t.treeTitle;
+      const hint = document.createElement("div");
+      hint.className = "small-text";
+      hint.textContent = t.treeHint;
+
+      const area = document.createElement("div");
+      area.style.display = "flex";
+      area.style.flexDirection = "column";
+      area.style.alignItems = "center";
+      area.style.marginTop = "8px";
+
+      const treeBox = document.createElement("div");
+      treeBox.style.width = "120px";
+      treeBox.style.height = "180px";
+      treeBox.style.borderRadius = "8px";
+      treeBox.style.background = "linear-gradient(#bbf7d0, #22c55e)";
+      treeBox.style.display = "flex";
+      treeBox.style.alignItems = "flex-end";
+      treeBox.style.justifyContent = "center";
+      treeBox.style.position = "relative";
+      treeBox.style.cursor = "pointer";
+
+      const trunk = document.createElement("div");
+      trunk.style.width = "10px";
+      trunk.style.height = "40px";
+      trunk.style.background = "#78350f";
+      treeBox.appendChild(trunk);
+
+      const crown = document.createElement("div");
+      crown.style.width = "60px";
+      crown.style.height = "60px";
+      crown.style.borderRadius = "50%";
+      crown.style.background = "#16a34a";
+      crown.style.position = "absolute";
+      crown.style.bottom = "40px";
+      treeBox.appendChild(crown);
+
+      let grow = 0;
+
+      treeBox.addEventListener("click", () => {
+        grow += 1;
+        const extra = Math.min(80, grow * 2);
+        trunk.style.height = 40 + extra + "px";
+        crown.style.bottom = 40 + extra + "px";
+      });
+
+      const info = document.createElement("div");
+      info.className = "game-info";
+      info.textContent = "0";
+
+      const updateInfo = () => {
+        info.textContent = currentLang === "ru"
+          ? `Высота: ${grow}`
+          : `Height: ${grow}`;
+      };
+      treeBox.addEventListener("click", updateInfo);
+
+      area.appendChild(treeBox);
+      area.appendChild(info);
+
+      gameContainer.appendChild(title);
+      gameContainer.appendChild(hint);
+      gameContainer.appendChild(area);
+      return;
+    }
+  }
+
+  // При смене игры чистим прежние обработчики (например, Тетрис)
+  function safeLoadGame(name) {
+    if (typeof gameContainer._cleanup === "function") {
+      try { gameContainer._cleanup(); } catch(e) {}
+      gameContainer._cleanup = null;
+    }
+    loadGame(name);
+  }
+
+  tabCat.addEventListener("click", () => safeLoadGame("cat"));
+  tabPuzzle.addEventListener("click", () => safeLoadGame("puzzle"));
+  tabTetris.addEventListener("click", () => safeLoadGame("tetris"));
+  tabTree.addEventListener("click", () => safeLoadGame("tree"));
+
+  // Инициализация игры по умолчанию
+  safeLoadGame("cat");
+</script>
+</body>
+</html>
