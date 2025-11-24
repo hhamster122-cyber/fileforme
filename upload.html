@@ -229,9 +229,7 @@
       <button data-game="snake" id="tab-snake">🐍 Snake</button>
       <button data-game="memory" id="tab-memory">🃏 Memory</button>
       <button data-game="bubble" id="tab-bubble">🫧 Bubble</button>
-      <button data-game="number" id="tab-number">🔢 Number</button>
       <button data-game="bounce" id="tab-bounce">🧱 Bounce</button>
-      <button data-game="orbit" id="tab-orbit">🪐 Orbit</button>
     </div>
     <div id="game-container"></div>
   </section>
@@ -239,8 +237,8 @@
 
 <script>
   // ========= НАСТРОЙКИ =========
-  const FUNCTION_URL = "https://functions.yandexcloud.net/d4eafltkn2hkceg16of4"; // <-- подставь свой URL, если он другой
-  const SECRET = "YOUR_UPLOAD_SECRET_HERE"; // <-- подставь тот же секрет, что в UPLOAD_SECRET
+  const FUNCTION_URL = "https://functions.yandexcloud.net/d4eafltkn2hkceg16of4";
+  const SECRET = "f7bzlvqi";
 
   // ========= ПЕРЕВОДЫ =========
   const translations = {
@@ -274,9 +272,7 @@
       gameSnake: "🐍 Змейка",
       gameMemory: "🃏 Memory",
       gameBubble: "🫧 Пузырьки",
-      gameNumber: "🔢 Числа",
       gameBounce: "🧱 Bounce",
-      gameOrbit: "🪐 Orbit",
       puzzleTitle: "Пятнашки 4×4",
       puzzleHint: "Кликайте по плиткам рядом с пустой, чтобы собрать числа по порядку.",
       tetrisTitle: "Мини-тетрис",
@@ -291,12 +287,8 @@
       memoryHint: "Открывайте карточки и находите пары.",
       bubbleTitle: "Лопай пузырьки",
       bubbleHint: "Кликайте по пузырькам, пока они не исчезли.",
-      numberTitle: "Числа по порядку",
-      numberHint: "Кликайте по числам от 1 до 25 как можно быстрее.",
       bounceTitle: "Мини арканоид",
       bounceHint: "Двигайте платформу (← →), чтобы отбивать мяч и ломать блоки.",
-      orbitTitle: "Кликаем по орбитам",
-      orbitHint: "Кликайте по летающим точкам, пока они не улетели.",
       filesChip: (n) => `Выбрано файлов: ${n}`
     },
     en: {
@@ -329,9 +321,7 @@
       gameSnake: "🐍 Snake",
       gameMemory: "🃏 Memory",
       gameBubble: "🫧 Bubble",
-      gameNumber: "🔢 Numbers",
       gameBounce: "🧱 Bounce",
-      gameOrbit: "🪐 Orbit",
       puzzleTitle: "15 Puzzle 4×4",
       puzzleHint: "Click tiles next to the empty one to arrange numbers in order.",
       tetrisTitle: "Mini Tetris",
@@ -346,12 +336,8 @@
       memoryHint: "Flip cards to find matching pairs.",
       bubbleTitle: "Bubble Pop",
       bubbleHint: "Click bubbles before they disappear.",
-      numberTitle: "Number Rush",
-      numberHint: "Click numbers from 1 to 25 as fast as you can.",
       bounceTitle: "Mini Arkanoid",
       bounceHint: "Move the paddle (← →) to bounce the ball and break bricks.",
-      orbitTitle: "Orbit Clicker",
-      orbitHint: "Click flying dots on orbits before they pass by.",
       filesChip: (n) => `Files selected: ${n}`
     }
   };
@@ -386,9 +372,7 @@
   const tabSnake = document.getElementById("tab-snake");
   const tabMemory = document.getElementById("tab-memory");
   const tabBubble = document.getElementById("tab-bubble");
-  const tabNumber = document.getElementById("tab-number");
   const tabBounce = document.getElementById("tab-bounce");
-  const tabOrbit = document.getElementById("tab-orbit");
   const gameContainer = document.getElementById("game-container");
 
   // Состояние загрузки
@@ -427,9 +411,7 @@
     tabSnake.textContent = t.gameSnake;
     tabMemory.textContent = t.gameMemory;
     tabBubble.textContent = t.gameBubble;
-    tabNumber.textContent = t.gameNumber;
     tabBounce.textContent = t.gameBounce;
-    tabOrbit.textContent = t.gameOrbit;
 
     if (allFiles.length === 0) {
       statusTextEl.textContent = t.statusIdle;
@@ -599,7 +581,8 @@
     const totalSize = allFiles.reduce((s, f) => s + f.size, 0);
     const maxRecommended = 40 * 1024 * 1024 * 1024;
     if (totalSize > maxRecommended) {
-      alert(t.sizeHint + "\n" + "( " + formatSize(totalSize) + " )");
+      alert(t.sizeHint + "
+" + "( " + formatSize(totalSize) + " )");
     }
     uploadFiles(allFiles, false);
   });
@@ -620,7 +603,7 @@
   }
 
   function setActiveTab(name) {
-    [tabPuzzle, tabTetris, tab2048, tabFlappy, tabSnake, tabMemory, tabBubble, tabNumber, tabBounce, tabOrbit]
+    [tabPuzzle, tabTetris, tab2048, tabFlappy, tabSnake, tabMemory, tabBubble, tabBounce]
       .forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.game === name);
       });
@@ -812,7 +795,10 @@
 
       let gameOver = false;
       function tick() {
-        if (gameOver) return;
+        if (gameOver) {
+          draw();
+          return;
+        }
         const newPiece = { shape: piece.shape, row: piece.row + 1, col: piece.col };
         if (!collides(newPiece)) {
           piece = newPiece;
@@ -868,8 +854,8 @@
       hint.className = "small-text";
       hint.textContent = t.game2048Hint;
 
-      const size = 4;
-      let board = Array.from({ length: size }, () => Array(size).fill(0));
+      const sizeN = 4;
+      let board = Array.from({ length: sizeN }, () => Array(sizeN).fill(0));
 
       const container = document.createElement("div");
       container.style.display = "grid";
@@ -879,8 +865,8 @@
 
       function addRandomTile() {
         const empty = [];
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
+        for (let r = 0; r < sizeN; r++) {
+          for (let c = 0; c < sizeN; c++) {
             if (board[r][c] === 0) empty.push([r, c]);
           }
         }
@@ -891,8 +877,8 @@
 
       function drawBoard() {
         container.innerHTML = "";
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
+        for (let r = 0; r < sizeN; r++) {
+          for (let c = 0; c < sizeN; c++) {
             const cell = document.createElement("div");
             cell.style.height = "45px";
             cell.style.display = "flex";
@@ -928,10 +914,10 @@
 
       function moveLeft() {
         let changed = false;
-        for (let r = 0; r < size; r++) {
+        for (let r = 0; r < sizeN; r++) {
           const row = board[r];
           const newRow = slideRow(row);
-          while (newRow.length < size) newRow.push(0);
+          while (newRow.length < sizeN) newRow.push(0);
           if (newRow.toString() !== row.toString()) changed = true;
           board[r] = newRow;
         }
@@ -941,10 +927,10 @@
 
       function moveRight() {
         let changed = false;
-        for (let r = 0; r < size; r++) {
+        for (let r = 0; r < sizeN; r++) {
           const row = [...board[r]].reverse();
           const newRow = slideRow(row);
-          while (newRow.length < size) newRow.push(0);
+          while (newRow.length < sizeN) newRow.push(0);
           newRow.reverse();
           if (newRow.toString() !== board[r].toString()) changed = true;
           board[r] = newRow;
@@ -955,12 +941,12 @@
 
       function moveUp() {
         let changed = false;
-        for (let c = 0; c < size; c++) {
+        for (let c = 0; c < sizeN; c++) {
           const col = [];
-          for (let r = 0; r < size; r++) col.push(board[r][c]);
+          for (let r = 0; r < sizeN; r++) col.push(board[r][c]);
           const newCol = slideRow(col);
-          while (newCol.length < size) newCol.push(0);
-          for (let r = 0; r < size; r++) {
+          while (newCol.length < sizeN) newCol.push(0);
+          for (let r = 0; r < sizeN; r++) {
             if (board[r][c] !== newCol[r]) changed = true;
             board[r][c] = newCol[r];
           }
@@ -971,14 +957,14 @@
 
       function moveDown() {
         let changed = false;
-        for (let c = 0; c < size; c++) {
+        for (let c = 0; c < sizeN; c++) {
           const col = [];
-          for (let r = 0; r < size; r++) col.push(board[r][c]);
+          for (let r = 0; r < sizeN; r++) col.push(board[r][c]);
           col.reverse();
           const newCol = slideRow(col);
-          while (newCol.length < size) newCol.push(0);
+          while (newCol.length < sizeN) newCol.push(0);
           newCol.reverse();
-          for (let r = 0; r < size; r++) {
+          for (let r = 0; r < sizeN; r++) {
             if (board[r][c] !== newCol[r]) changed = true;
             board[r][c] = newCol[r];
           }
@@ -1105,7 +1091,6 @@
 
       function flap() {
         if (gameOver) {
-          // restart
           y = canvas.height / 2;
           vel = 0;
           pipes = [];
@@ -1397,57 +1382,6 @@
       return;
     }
 
-    // ------- NUMBER RUSH -------
-    if (name === "number") {
-      const title = document.createElement("div");
-      title.className = "game-title";
-      title.textContent = t.numberTitle;
-      const hint = document.createElement("div");
-      hint.className = "small-text";
-      hint.textContent = t.numberHint;
-
-      const grid = document.createElement("div");
-      grid.style.display = "grid";
-      grid.style.gridTemplateColumns = "repeat(5, 1fr)";
-      grid.style.gap = "4px";
-      grid.style.marginTop = "8px";
-
-      const nums = [];
-      for (let i = 1; i <= 25; i++) nums.push(i);
-      for (let i = nums.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [nums[i], nums[j]] = [nums[j], nums[i]];
-      }
-
-      let target = 1;
-
-      nums.forEach((num) => {
-        const cell = document.createElement("div");
-        cell.style.height = "35px";
-        cell.style.display = "flex";
-        cell.style.alignItems = "center";
-        cell.style.justifyContent = "center";
-        cell.style.borderRadius = "8px";
-        cell.style.cursor = "pointer";
-        cell.style.fontSize = "14px";
-        cell.style.background = "#e5e7eb";
-        cell.textContent = num;
-        cell.addEventListener("click", () => {
-          if (num === target) {
-            cell.style.background = "#22c55e";
-            cell.style.color = "#fff";
-            target++;
-          }
-        });
-        grid.appendChild(cell);
-      });
-
-      gameContainer.appendChild(title);
-      gameContainer.appendChild(hint);
-      gameContainer.appendChild(grid);
-      return;
-    }
-
     // ------- BOUNCE BALL (мини-арканоид) -------
     if (name === "bounce") {
       const title = document.createElement("div");
@@ -1571,94 +1505,6 @@
       draw();
       return;
     }
-
-    // ------- ORBIT CLICKER -------
-    if (name === "orbit") {
-      const title = document.createElement("div");
-      title.className = "game-title";
-      title.textContent = t.orbitTitle;
-      const hint = document.createElement("div");
-      hint.className = "small-text";
-      hint.textContent = t.orbitHint;
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 260;
-      canvas.height = 200;
-      const ctx = canvas.getContext("2d");
-
-      let score = 0;
-      function drawScore() {
-        ctx.fillStyle = "#fff";
-        ctx.font = "12px sans-serif";
-        const text = currentLang === "ru" ? `Счёт: ${score}` : `Score: ${score}`;
-        ctx.fillText(text, 10, 15);
-      }
-
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const orbits = [
-        { r: 30, speed: 0.04, angle: 0 },
-        { r: 50, speed: -0.03, angle: 1 },
-        { r: 70, speed: 0.02, angle: 2 }
-      ];
-
-      function draw() {
-        ctx.fillStyle = "#020617";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        ctx.strokeStyle = "#1e293b";
-        orbits.forEach(o => {
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, o.r, 0, Math.PI * 2);
-          ctx.stroke();
-        });
-
-        ctx.fillStyle = "#22c55e";
-        orbits.forEach(o => {
-          const x = centerX + Math.cos(o.angle) * o.r;
-          const y = centerY + Math.sin(o.angle) * o.r;
-          ctx.beginPath();
-          ctx.arc(x, y, 5, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        drawScore();
-      }
-
-      function tick() {
-        orbits.forEach(o => {
-          o.angle += o.speed;
-        });
-        draw();
-      }
-
-      function clickHandler(e) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        orbits.forEach(o => {
-          const px = centerX + Math.cos(o.angle) * o.r;
-          const py = centerY + Math.sin(o.angle) * o.r;
-          const dist = Math.hypot(x - px, y - py);
-          if (dist < 8) {
-            score++;
-          }
-        });
-      }
-
-      const interval = setInterval(tick, 30);
-      canvas.addEventListener("click", clickHandler);
-      gameContainer._cleanup = () => {
-        clearInterval(interval);
-        canvas.removeEventListener("click", clickHandler);
-      };
-
-      gameContainer.appendChild(title);
-      gameContainer.appendChild(hint);
-      gameContainer.appendChild(canvas);
-      draw();
-      return;
-    }
   }
 
   function safeLoadGame(name) {
@@ -1673,9 +1519,7 @@
   tabSnake.addEventListener("click", () => safeLoadGame("snake"));
   tabMemory.addEventListener("click", () => safeLoadGame("memory"));
   tabBubble.addEventListener("click", () => safeLoadGame("bubble"));
-  tabNumber.addEventListener("click", () => safeLoadGame("number"));
   tabBounce.addEventListener("click", () => safeLoadGame("bounce"));
-  tabOrbit.addEventListener("click", () => safeLoadGame("orbit"));
 
   safeLoadGame("puzzle");
 </script>
